@@ -153,6 +153,26 @@ export default function ResumeBuilderClient({
         setResumeData({ ...resumeData, skills: newSkills })
     }
 
+    const handleDownloadPDF = async () => {
+        const element = document.getElementById('resume-preview-content')
+        if (!element) return
+
+        try {
+            // Dynamically import to prevent Next.js SSR document undefined errors
+            const html2pdf = (await import('html2pdf.js')).default
+            const opt = {
+                margin: [0.4, 0, 0, 0] as [number, number, number, number], // Top margin for spacing
+                filename: `${title || 'Resume'}.pdf`,
+                image: { type: 'jpeg' as const, quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            }
+            html2pdf().set(opt).from(element).save()
+        } catch (error) {
+            console.error('Failed to generate PDF:', error)
+        }
+    }
+
     const { completion, complete, isLoading } = useCompletion({
         api: '/api/generate',
         onFinish: (prompt: string, result: string) => {
@@ -380,9 +400,18 @@ export default function ResumeBuilderClient({
             </div>
 
             {/* Preview Section (Right Side) */}
-            <div className="w-1/2 bg-gray-200 p-8 flex justify-center overflow-y-auto">
+            <div className="w-1/2 bg-gray-200 p-8 flex flex-col items-center overflow-y-auto relative">
+                <div className="w-[8.5in] flex justify-end mb-4">
+                    <button
+                        onClick={handleDownloadPDF}
+                        className="bg-indigo-600 text-white px-5 py-2 rounded shadow-md hover:bg-indigo-700 transition flex items-center gap-2 font-medium text-sm"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
+                        Download PDF
+                    </button>
+                </div>
                 {/* A4 Resume Paper Effect */}
-                <div className="w-[8.5in] min-h-[11in] bg-white p-10 shadow-xl transition-all h-fit shrink-0 tracking-normal text-gray-900">
+                <div id="resume-preview-content" className="w-[8.5in] min-h-[11in] bg-white p-10 shadow-xl transition-all h-fit shrink-0 tracking-normal text-gray-900">
                     {/* Preview Content */}
                     <header className="border-b-2 border-gray-300 pb-4 mb-6">
                         <h1 className="text-4xl font-serif font-bold text-gray-900 uppercase tracking-tight">
