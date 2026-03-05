@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { FileDown, Clock, ShieldCheck, Zap } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 
 export default function Home() {
   return (
@@ -11,9 +12,12 @@ export default function Home() {
           <Clock className="w-4 h-4" /> Resumes self-destruct in 5 minutes for your privacy.
         </div>
 
-        <h1 className="mb-6 text-5xl font-extrabold tracking-tight sm:text-7xl">
-          Build Your <span className="text-indigo-600">Perfect Resume</span> Fast
-        </h1>
+        <div className="mb-6 flex flex-col items-center">
+          <Logo className="text-6xl sm:text-7xl mb-4" />
+          <h2 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
+            Build Your <span className="text-indigo-600">Perfect Resume</span> Fast
+          </h2>
+        </div>
 
         <p className="mb-10 max-w-2xl text-lg text-gray-600 sm:text-xl">
           Use the power of AI to craft professional summaries that get you hired. Stand out from the crowd with our intelligent builder. No login required, maximum privacy.

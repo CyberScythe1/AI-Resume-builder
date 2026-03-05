@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useReactToPrint } from 'react-to-print'
+import { Logo } from '@/components/Logo'
 
 export default function ResumeBuilderClient({
     initialResume,
@@ -231,13 +232,16 @@ export default function ResumeBuilderClient({
             {/* Form Section (Left Side) */}
             <div className="w-full lg:w-1/2 flex-col lg:overflow-y-auto border-r border-gray-200 bg-gray-50 p-4 sm:p-6 pb-20 lg:pb-6">
                 <header className="mb-6 border-b border-gray-200 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 bg-gray-50 z-10 p-2 shadow-sm rounded-md">
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="w-full sm:w-1/2 bg-transparent text-xl sm:text-2xl font-bold text-gray-900 focus:outline-none"
-                        placeholder="Resume Title"
-                    />
+                    <div className="flex flex-col gap-1 w-full sm:w-1/2">
+                        <Logo className="text-xl sm:text-2xl" />
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="w-full bg-transparent text-sm font-medium text-gray-500 focus:outline-none focus:text-gray-900 transition-colors"
+                            placeholder="Resume Title"
+                        />
+                    </div>
                     <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
                         <div className="flex items-center gap-3">
                             {resumeId !== 'new' && (
