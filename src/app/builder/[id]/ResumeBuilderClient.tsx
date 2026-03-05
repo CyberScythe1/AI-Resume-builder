@@ -22,7 +22,9 @@ export default function ResumeBuilderClient({
     const [isSaving, setIsSaving] = useState(false)
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const contentRef = useRef<HTMLDivElement>(null)
+    const previewContainerRef = useRef<HTMLDivElement>(null)
     const [timeLeft, setTimeLeft] = useState<number>(300)
+    const [scale, setScale] = useState(1)
 
     const [resumeData, setResumeData] = useState(
         initialResume?.content || {
@@ -100,6 +102,25 @@ export default function ResumeBuilderClient({
             if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
         }
     }, [resumeData, title])
+
+    // Container scaling logic
+    useEffect(() => {
+        const container = previewContainerRef.current
+        if (!container) return
+
+        const observer = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                const containerWidth = entry.contentRect.width
+                // A4 width is 8.5in (~816px). We add 32px to ensure 16px padding on both sides.
+                const newScale = Math.min((containerWidth - 32) / 816, 1)
+                setScale(newScale)
+            }
+        })
+
+        observer.observe(container)
+        return () => observer.disconnect()
+    }, [])
+
     // Array item handlers
     const handleAddExperience = () => {
         setResumeData((prev: any) => ({
@@ -517,10 +538,20 @@ export default function ResumeBuilderClient({
             </div>
 
             {/* Preview Section (Right Side) */}
-            <div className="w-full lg:w-1/2 bg-gray-200 p-4 lg:p-8 flex flex-col items-center overflow-x-hidden overflow-y-auto">
-                <div className="w-full max-w-[8.5in] overflow-x-auto overflow-y-hidden print:overflow-visible flex justify-center pb-10">
+            <div
+                ref={previewContainerRef}
+                className="w-full lg:w-1/2 bg-gray-200 p-4 lg:p-0 flex flex-col items-center overflow-x-hidden overflow-y-auto"
+            >
+                <div
+                    className="flex justify-center transition-transform duration-300 origin-top pt-8 pb-10"
+                    style={{
+                        transform: `scale(${scale})`,
+                        width: '816px', // Explicitly hold the 8.5in space to prevent container collapsing
+                        marginBottom: `-${(1 - scale) * 1056}px` // Reduce bottom margin to counteract the layout space left by scale
+                    }}
+                >
                     {/* A4 Resume Paper Effect */}
-                    <div ref={contentRef} id="resume-preview-content" className="w-[8.5in] min-h-[11in] bg-white p-10 shadow-xl transition-all h-fit shrink-0 tracking-normal text-gray-900 print:shadow-none print:m-0 print:p-8">
+                    <div ref={contentRef} id="resume-preview-content" className="w-[8.5in] min-h-[11in] bg-white p-10 shadow-xl shrink-0 tracking-normal text-gray-900 print:shadow-none print:m-0 print:p-8">
                         {/* Preview Content */}
                         <header className="border-b-2 border-gray-300 pb-4 mb-6">
                             <h1 className="text-4xl font-serif font-bold text-gray-900 uppercase tracking-tight">
