@@ -95,6 +95,64 @@ export default function ResumeBuilderClient({
             if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
         }
     }, [resumeData, title])
+    // Array item handlers
+    const handleAddExperience = () => {
+        setResumeData((prev: any) => ({
+            ...prev,
+            experience: [...prev.experience, { title: '', company: '', date: '', description: '' }]
+        }))
+    }
+
+    const handleUpdateExperience = (index: number, field: string, value: string) => {
+        const newExp = [...resumeData.experience]
+        newExp[index][field] = value
+        setResumeData({ ...resumeData, experience: newExp })
+    }
+
+    const handleRemoveExperience = (index: number) => {
+        const newExp = [...resumeData.experience]
+        newExp.splice(index, 1)
+        setResumeData({ ...resumeData, experience: newExp })
+    }
+
+    const handleAddEducation = () => {
+        setResumeData((prev: any) => ({
+            ...prev,
+            education: [...prev.education, { degree: '', school: '', date: '', info: '' }]
+        }))
+    }
+
+    const handleUpdateEducation = (index: number, field: string, value: string) => {
+        const newEdu = [...resumeData.education]
+        newEdu[index][field] = value
+        setResumeData({ ...resumeData, education: newEdu })
+    }
+
+    const handleRemoveEducation = (index: number) => {
+        const newEdu = [...resumeData.education]
+        newEdu.splice(index, 1)
+        setResumeData({ ...resumeData, education: newEdu })
+    }
+
+    const handleAddSkill = () => {
+        setResumeData((prev: any) => ({
+            ...prev,
+            skills: [...prev.skills, '']
+        }))
+    }
+
+    const handleUpdateSkill = (index: number, value: string) => {
+        const newSkills = [...resumeData.skills]
+        newSkills[index] = value
+        setResumeData({ ...resumeData, skills: newSkills })
+    }
+
+    const handleRemoveSkill = (index: number) => {
+        const newSkills = [...resumeData.skills]
+        newSkills.splice(index, 1)
+        setResumeData({ ...resumeData, skills: newSkills })
+    }
+
     const { completion, complete, isLoading } = useCompletion({
         api: '/api/generate',
         onFinish: (prompt: string, result: string) => {
@@ -194,25 +252,129 @@ export default function ResumeBuilderClient({
                     <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-semibold text-gray-800">Experience</h2>
-                            <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Entry</button>
+                            <button onClick={handleAddExperience} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Entry</button>
                         </div>
-                        <p className="text-sm text-gray-500 italic">Work experience entries will appear here.</p>
+                        {resumeData.experience.length === 0 ? (
+                            <p className="text-sm text-gray-500 italic">Work experience entries will appear here.</p>
+                        ) : (
+                            <div className="space-y-6">
+                                {resumeData.experience.map((exp: any, index: number) => (
+                                    <div key={index} className="relative p-4 border border-gray-100 bg-gray-50 rounded-md">
+                                        <button
+                                            onClick={() => handleRemoveExperience(index)}
+                                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-sm font-medium"
+                                        >
+                                            Remove
+                                        </button>
+                                        <div className="grid grid-cols-2 gap-3 mt-2">
+                                            <input
+                                                className="rounded-md border p-2 shadow-sm"
+                                                placeholder="Job Title"
+                                                value={exp.title}
+                                                onChange={(e) => handleUpdateExperience(index, 'title', e.target.value)}
+                                            />
+                                            <input
+                                                className="rounded-md border p-2 shadow-sm"
+                                                placeholder="Company Name"
+                                                value={exp.company}
+                                                onChange={(e) => handleUpdateExperience(index, 'company', e.target.value)}
+                                            />
+                                            <input
+                                                className="rounded-md border p-2 col-span-2 shadow-sm"
+                                                placeholder="Dates (e.g. Jan 2020 - Present)"
+                                                value={exp.date}
+                                                onChange={(e) => handleUpdateExperience(index, 'date', e.target.value)}
+                                            />
+                                            <textarea
+                                                className="rounded-md border p-2 col-span-2 h-20 shadow-sm"
+                                                placeholder="Description / Responsibilities"
+                                                value={exp.description}
+                                                onChange={(e) => handleUpdateExperience(index, 'description', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-semibold text-gray-800">Education</h2>
-                            <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Entry</button>
+                            <button onClick={handleAddEducation} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Entry</button>
                         </div>
-                        <p className="text-sm text-gray-500 italic">Education entries will appear here.</p>
+                        {resumeData.education.length === 0 ? (
+                            <p className="text-sm text-gray-500 italic">Education entries will appear here.</p>
+                        ) : (
+                            <div className="space-y-6">
+                                {resumeData.education.map((edu: any, index: number) => (
+                                    <div key={index} className="relative p-4 border border-gray-100 bg-gray-50 rounded-md">
+                                        <button
+                                            onClick={() => handleRemoveEducation(index)}
+                                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-sm font-medium"
+                                        >
+                                            Remove
+                                        </button>
+                                        <div className="grid grid-cols-2 gap-3 mt-2">
+                                            <input
+                                                className="rounded-md border p-2 shadow-sm"
+                                                placeholder="Degree / Certificate"
+                                                value={edu.degree}
+                                                onChange={(e) => handleUpdateEducation(index, 'degree', e.target.value)}
+                                            />
+                                            <input
+                                                className="rounded-md border p-2 shadow-sm"
+                                                placeholder="School / University"
+                                                value={edu.school}
+                                                onChange={(e) => handleUpdateEducation(index, 'school', e.target.value)}
+                                            />
+                                            <input
+                                                className="rounded-md border p-2 col-span-2 shadow-sm"
+                                                placeholder="Dates (e.g. 2018 - 2022)"
+                                                value={edu.date}
+                                                onChange={(e) => handleUpdateEducation(index, 'date', e.target.value)}
+                                            />
+                                            <input
+                                                className="rounded-md border p-2 col-span-2 shadow-sm"
+                                                placeholder="Additional Info (GPA, Honors, etc.)"
+                                                value={edu.info}
+                                                onChange={(e) => handleUpdateEducation(index, 'info', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-semibold text-gray-800">Skills</h2>
-                            <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Skill</button>
+                            <button onClick={handleAddSkill} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Skill</button>
                         </div>
-                        <p className="text-sm text-gray-500 italic">Skills will appear here.</p>
+                        {resumeData.skills.length === 0 ? (
+                            <p className="text-sm text-gray-500 italic">Skills will appear here.</p>
+                        ) : (
+                            <div className="flex flex-wrap gap-3">
+                                {resumeData.skills.map((skill: string, index: number) => (
+                                    <div key={index} className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1">
+                                        <input
+                                            className="bg-transparent focus:outline-none text-sm text-indigo-900 w-24"
+                                            placeholder="Skill..."
+                                            value={skill}
+                                            onChange={(e) => handleUpdateSkill(index, e.target.value)}
+                                            autoFocus={skill === ''}
+                                        />
+                                        <button
+                                            onClick={() => handleRemoveSkill(index)}
+                                            className="text-indigo-400 hover:text-red-500 rounded-full flex items-center justify-center p-1"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </section>
             </div>
@@ -242,13 +404,60 @@ export default function ResumeBuilderClient({
 
                     <section className="mb-6">
                         <h2 className="text-lg font-bold text-gray-800 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Experience</h2>
-                        <div className="text-sm text-gray-500 italic">Experience items will map here...</div>
+                        {resumeData.experience.length === 0 ? (
+                            <div className="text-sm text-gray-500 italic">Experience items will map here...</div>
+                        ) : (
+                            <div className="space-y-4 pt-2">
+                                {resumeData.experience.map((exp: any, index: number) => (
+                                    <div key={index}>
+                                        <div className="flex justify-between items-baseline mb-1">
+                                            <h3 className="font-bold text-gray-900">{exp.title || 'Job Title'}</h3>
+                                            <span className="text-sm font-medium text-gray-600 font-serif">{exp.date || 'Dates'}</span>
+                                        </div>
+                                        <div className="text-indigo-700 font-semibold text-sm mb-2">{exp.company || 'Company Name'}</div>
+                                        <p className="text-sm text-gray-700 leading-relaxed font-serif whitespace-pre-wrap">
+                                            {exp.description || 'Description of responsibilities and achievements...'}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </section>
 
                     <section className="mb-6">
                         <h2 className="text-lg font-bold text-gray-800 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Education</h2>
-                        <div className="text-sm text-gray-500 italic">Education items will map here...</div>
+                        {resumeData.education.length === 0 ? (
+                            <div className="text-sm text-gray-500 italic">Education items will map here...</div>
+                        ) : (
+                            <div className="space-y-4 pt-2">
+                                {resumeData.education.map((edu: any, index: number) => (
+                                    <div key={index}>
+                                        <div className="flex justify-between items-baseline mb-1">
+                                            <h3 className="font-bold text-gray-900">{edu.degree || 'Degree/Certificate'}</h3>
+                                            <span className="text-sm font-medium text-gray-600 font-serif">{edu.date || 'Dates'}</span>
+                                        </div>
+                                        <div className="text-indigo-700 font-semibold text-sm mb-1">{edu.school || 'School/University Name'}</div>
+                                        <div className="text-sm text-gray-600 font-serif">{edu.info}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </section>
+
+                    {resumeData.skills.length > 0 && (
+                        <section className="mb-6">
+                            <h2 className="text-lg font-bold text-gray-800 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Skills</h2>
+                            <div className="flex flex-wrap gap-2 pt-2">
+                                {resumeData.skills.map((skill: string, index: number) => (
+                                    skill && (
+                                        <span key={index} className="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded-sm border border-gray-200 font-medium">
+                                            {skill}
+                                        </span>
+                                    )
+                                ))}
+                            </div>
+                        </section>
+                    )}
                 </div>
             </div>
         </div>
