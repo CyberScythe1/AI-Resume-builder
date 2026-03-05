@@ -5,6 +5,7 @@ import { useCompletion } from '@ai-sdk/react'
 import { v4 as uuidv4 } from 'uuid'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useReactToPrint } from 'react-to-print'
 
 export default function ResumeBuilderClient({
     initialResume,
@@ -19,6 +20,7 @@ export default function ResumeBuilderClient({
     const supabase = createClient()
     const [isSaving, setIsSaving] = useState(false)
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
+    const contentRef = useRef<HTMLDivElement>(null)
     const [timeLeft, setTimeLeft] = useState<number>(300)
 
     const [resumeData, setResumeData] = useState(
@@ -153,25 +155,10 @@ export default function ResumeBuilderClient({
         setResumeData({ ...resumeData, skills: newSkills })
     }
 
-    const handleDownloadPDF = async () => {
-        const element = document.getElementById('resume-preview-content')
-        if (!element) return
-
-        try {
-            // Dynamically import to prevent Next.js SSR document undefined errors
-            const html2pdf = (await import('html2pdf.js')).default
-            const opt = {
-                margin: [0.4, 0, 0, 0] as [number, number, number, number], // Top margin for spacing
-                filename: `${title || 'Resume'}.pdf`,
-                image: { type: 'jpeg' as const, quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' as const }
-            }
-            html2pdf().set(opt).from(element).save()
-        } catch (error) {
-            console.error('Failed to generate PDF:', error)
-        }
-    }
+    const handleDownloadPDF = useReactToPrint({
+        content: () => contentRef.current,
+        documentTitle: title || 'Resume',
+    })
 
     const { completion, complete, isLoading } = useCompletion({
         api: '/api/generate',
@@ -407,11 +394,11 @@ export default function ResumeBuilderClient({
                         className="bg-indigo-600 text-white px-5 py-2 rounded shadow-md hover:bg-indigo-700 transition flex items-center gap-2 font-medium text-sm"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
-                        Download PDF
+                        Download / Print PDF
                     </button>
                 </div>
                 {/* A4 Resume Paper Effect */}
-                <div id="resume-preview-content" className="w-[8.5in] min-h-[11in] bg-white p-10 shadow-xl transition-all h-fit shrink-0 tracking-normal text-gray-900">
+                <div ref={contentRef} id="resume-preview-content" className="w-[8.5in] min-h-[11in] bg-white p-10 shadow-xl transition-all h-fit shrink-0 tracking-normal text-gray-900 print:shadow-none print:m-0 print:p-8">
                     {/* Preview Content */}
                     <header className="border-b-2 border-gray-300 pb-4 mb-6">
                         <h1 className="text-4xl font-serif font-bold text-gray-900 uppercase tracking-tight">
