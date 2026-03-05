@@ -156,7 +156,7 @@ export default function ResumeBuilderClient({
     }
 
     const handleDownloadPDF = useReactToPrint({
-        content: () => contentRef.current,
+        contentRef: contentRef,
         documentTitle: title || 'Resume',
     })
 
