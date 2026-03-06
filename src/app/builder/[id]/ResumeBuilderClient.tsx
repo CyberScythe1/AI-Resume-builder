@@ -224,6 +224,7 @@ export default function ResumeBuilderClient({
 
     const { completion, complete, isLoading } = useCompletion({
         api: '/api/generate',
+        streamProtocol: 'text',
         onFinish: (prompt: string, result: string) => {
             setResumeData((prev: any) => ({
                 ...prev,
