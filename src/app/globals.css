@@ -24,3 +24,20 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media print {
+  /* Disable any zoom/scaling injected by JS on the preview wrapper */
+  .print-safe-wrapper {
+    transform: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Make sure the page background is white and clean */
+  body, html {
+    background: white !important;
+    margin: 0 !important;
+    height: auto !important;
+  }
+}

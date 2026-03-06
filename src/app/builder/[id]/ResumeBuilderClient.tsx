@@ -251,7 +251,7 @@ export default function ResumeBuilderClient({
     return (
         <div className="flex flex-col lg:flex-row w-full h-full lg:overflow-hidden text-black bg-white lg:bg-transparent">
             {/* Form Section (Left Side) */}
-            <div className="w-full lg:w-1/2 flex-col lg:overflow-y-auto border-r border-gray-200 bg-gray-50 p-4 sm:p-6 pb-20 lg:pb-6">
+            <div className="print:hidden w-full lg:w-1/2 flex-col lg:overflow-y-auto border-r border-gray-200 bg-gray-50 p-4 sm:p-6 pb-20 lg:pb-6">
                 <header className="mb-6 border-b border-gray-200 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 bg-gray-50 z-10 p-2 shadow-sm rounded-md">
                     <div className="flex flex-col gap-1 w-full sm:w-1/2">
                         <Logo className="text-xl sm:text-2xl" />
@@ -540,10 +540,10 @@ export default function ResumeBuilderClient({
             {/* Preview Section (Right Side) */}
             <div
                 ref={previewContainerRef}
-                className="w-full lg:w-1/2 bg-gray-200 p-4 lg:p-0 flex flex-col items-center overflow-x-hidden overflow-y-auto"
+                className="w-full lg:w-1/2 bg-gray-200 p-4 lg:p-0 flex flex-col items-center overflow-x-hidden overflow-y-auto print:overflow-visible print:bg-white print:p-0"
             >
                 <div
-                    className="flex justify-center transition-transform duration-300 origin-top pt-8 pb-10"
+                    className="flex justify-center transition-transform duration-300 origin-top pt-8 pb-10 print-safe-wrapper"
                     style={{
                         transform: `scale(${scale})`,
                         width: '816px', // Explicitly hold the 8.5in space to prevent container collapsing
