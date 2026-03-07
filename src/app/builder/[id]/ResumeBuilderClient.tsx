@@ -23,7 +23,7 @@ export default function ResumeBuilderClient({
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const contentRef = useRef<HTMLDivElement>(null)
     const previewContainerRef = useRef<HTMLDivElement>(null)
-    const [timeLeft, setTimeLeft] = useState<number>(300)
+    const [timeLeft, setTimeLeft] = useState<number | null>(300)
     const [scale, setScale] = useState(1)
 
     const [resumeData, setResumeData] = useState(
@@ -48,21 +48,31 @@ export default function ResumeBuilderClient({
 
     // Countdown logic
     useEffect(() => {
-        if (resumeId !== 'new') {
-            const initialCreatedAt = initialResume?.created_at ? new Date(initialResume.created_at).getTime() : Date.now()
-            const interval = setInterval(() => {
-                const now = Date.now()
-                const diff = Math.floor((initialCreatedAt + 5 * 60 * 1000 - now) / 1000)
-                if (diff <= 0) {
-                    clearInterval(interval)
-                    router.push('/?expired=true')
-                } else {
-                    setTimeLeft(diff)
-                }
-            }, 1000)
-            return () => clearInterval(interval)
+        const checkUserAndStartTimer = async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            // If the user is logged in, their resumes don't expire
+            if (session?.user) {
+                setTimeLeft(null)
+                return
+            }
+
+            if (resumeId !== 'new') {
+                const initialCreatedAt = initialResume?.created_at ? new Date(initialResume.created_at).getTime() : Date.now()
+                const interval = setInterval(() => {
+                    const now = Date.now()
+                    const diff = Math.floor((initialCreatedAt + 5 * 60 * 1000 - now) / 1000)
+                    if (diff <= 0) {
+                        clearInterval(interval)
+                        router.push('/?expired=true')
+                    } else {
+                        setTimeLeft(diff)
+                    }
+                }, 1000)
+                return () => clearInterval(interval)
+            }
         }
-    }, [resumeId, initialResume, router])
+        checkUserAndStartTimer()
+    }, [resumeId, initialResume, router, supabase])
 
     // Auto-save logic
     useEffect(() => {
@@ -74,10 +84,15 @@ export default function ResumeBuilderClient({
             setIsSaving(true)
 
             try {
+                // Determine if user is logged in to link the resume
+                const { data: { session } } = await supabase.auth.getSession()
+                const userId = session?.user?.id || null
+
                 if (resumeId === 'new') {
                     const newId = uuidv4()
                     const { error } = await supabase.from('resumes').insert({
                         id: newId,
+                        user_id: userId,
                         title: title,
                         content: resumeData
                     })
@@ -101,7 +116,7 @@ export default function ResumeBuilderClient({
         return () => {
             if (debounceTimeout.current) clearTimeout(debounceTimeout.current)
         }
-    }, [resumeData, title])
+    }, [resumeData, title, resumeId, router, supabase])
 
     // Container scaling logic
     useEffect(() => {
@@ -266,7 +281,7 @@ export default function ResumeBuilderClient({
                     </div>
                     <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
                         <div className="flex items-center gap-3">
-                            {resumeId !== 'new' && (
+                            {(resumeId !== 'new' && timeLeft !== null) && (
                                 <div className="text-xs font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-full border border-red-200 shadow-sm transition-all hover:bg-red-100 whitespace-nowrap">
                                     Ends in: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
                                 </div>
@@ -317,14 +332,25 @@ export default function ResumeBuilderClient({
                             <button
                                 onClick={(e) => {
                                     e.preventDefault()
-                                    if (resumeData.personalInfo.summary.length > 5) {
-                                        complete(resumeData.personalInfo.summary)
+                                    const hasContext = resumeData.personalInfo.summary.length > 3 ||
+                                        resumeData.experience.length > 0 ||
+                                        resumeData.skills.length > 0 ||
+                                        resumeData.education.length > 0;
+
+                                    if (hasContext) {
+                                        const promptContext = `
+Draft/Keywords: ${resumeData.personalInfo.summary || 'None'}
+Experience: ${resumeData.experience.map((ex: any) => `${ex.title} at ${ex.company}: ${ex.description}`).join(' | ')}
+Skills: ${resumeData.skills.join(', ')}
+Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.school}`).join(' | ')}
+`;
+                                        complete(promptContext)
                                     } else {
-                                        alert('Please enter a few keywords or sentences first.')
+                                        alert('Please enter some details (experience, skills, or summary keywords) first.')
                                     }
                                 }}
                                 disabled={isLoading}
-                                className="col-span-2 rounded bg-indigo-50 p-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                                className="col-span-2 rounded bg-indigo-50 dark:bg-indigo-900/40 p-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors disabled:opacity-50 border border-indigo-100 dark:border-indigo-800"
                             >
                                 {isLoading ? '✨ Generating...' : '✨ Enhance Summary with AI'}
                             </button>

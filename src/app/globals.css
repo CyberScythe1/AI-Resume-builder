@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -12,11 +14,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {
@@ -26,6 +26,7 @@ body {
 }
 
 @media print {
+
   /* Disable any zoom/scaling injected by JS on the preview wrapper */
   .print-safe-wrapper {
     transform: none !important;
@@ -33,9 +34,10 @@ body {
     margin: 0 !important;
     padding: 0 !important;
   }
-  
+
   /* Make sure the page background is white and clean */
-  body, html {
+  body,
+  html {
     background: white !important;
     margin: 0 !important;
     height: auto !important;
