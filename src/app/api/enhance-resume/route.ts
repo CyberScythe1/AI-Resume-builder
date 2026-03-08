@@ -24,7 +24,6 @@ export async function POST(req: Request) {
 
         const result = await generateObject({
             model: openrouter('google/gemini-2.0-flash-lite-preview-02-05:free'),
-            maxTokens: 4000,
             system: `You are an expert executive resume writer and career coach. Review the provided resume JSON.
 Your goal is to enhance the grammar, professionalism, and impact of all text fields (summaries, job descriptions, project details).
 - DO NOT invent fake experiences, jobs, or degrees.
