@@ -55,7 +55,12 @@ CREATE POLICY "Anyone can delete anonymous resumes" ON public.resumes
 -- 8. Setup CRON JOB (5 minute auto-deletion for anonymous resumes only)
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 
-SELECT cron.unschedule('delete-expired-resumes');
+DO $$
+BEGIN
+  PERFORM cron.unschedule('delete-expired-resumes');
+EXCEPTION WHEN OTHERS THEN
+  -- Ignore error if job does not exist
+END $$;
 SELECT cron.schedule(
     'delete-expired-resumes',
     '* * * * *', -- Run every minute
