@@ -7,6 +7,8 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useReactToPrint } from 'react-to-print'
 import { Logo } from '@/components/Logo'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { Templates, TemplateId, TEMPLATE_IDS } from '@/components/templates'
 
 export default function ResumeBuilderClient({
     initialResume,
@@ -25,9 +27,12 @@ export default function ResumeBuilderClient({
     const previewContainerRef = useRef<HTMLDivElement>(null)
     const [timeLeft, setTimeLeft] = useState<number | null>(300)
     const [scale, setScale] = useState(1)
+    const [history, setHistory] = useState<any[]>([])
+    const [isEnhancing, setIsEnhancing] = useState(false)
 
     const [resumeData, setResumeData] = useState(
         initialResume?.content || {
+            templateId: 'minimal',
             personalInfo: {
                 fullName: '',
                 email: '',
@@ -265,17 +270,17 @@ export default function ResumeBuilderClient({
     }, [completion])
 
     return (
-        <div className="flex flex-col lg:flex-row w-full h-full lg:overflow-hidden text-black bg-white lg:bg-transparent">
+        <div className="flex flex-col lg:flex-row w-full h-full lg:overflow-hidden text-black dark:text-gray-100 bg-white dark:bg-slate-900 lg:bg-transparent dark:lg:bg-transparent transition-colors">
             {/* Form Section (Left Side) */}
-            <div className="print:hidden w-full lg:w-1/2 flex-col lg:overflow-y-auto border-r border-gray-200 bg-gray-50 p-4 sm:p-6 pb-20 lg:pb-6">
-                <header className="mb-6 border-b border-gray-200 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 bg-gray-50 z-10 p-2 shadow-sm rounded-md">
+            <div className="print:hidden w-full lg:w-1/2 flex-col lg:overflow-y-auto border-r border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 p-4 sm:p-6 pb-20 lg:pb-6 transition-colors">
+                <header className="mb-6 border-b border-gray-200 dark:border-slate-800 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 bg-gray-50 dark:bg-slate-900/95 z-10 p-2 shadow-sm rounded-md transition-colors">
                     <div className="flex flex-col gap-1 w-full sm:w-1/2">
                         <Logo className="text-xl sm:text-2xl" />
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full bg-transparent text-sm font-medium text-gray-500 focus:outline-none focus:text-gray-900 transition-colors"
+                            className="w-full bg-transparent text-sm font-medium text-gray-500 dark:text-gray-400 focus:outline-none focus:text-gray-900 dark:focus:text-gray-100 transition-colors"
                             placeholder="Resume Title"
                         />
                     </div>
@@ -293,81 +298,75 @@ export default function ResumeBuilderClient({
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
                                 Download PDF
                             </button>
+                            <ThemeToggle />
                         </div>
-                        <span className="text-[10px] text-gray-400 font-medium">
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
                             {isSaving ? 'Saving...' : 'All changes saved.'}
                         </span>
                     </div>
                 </header>
 
                 <section className="space-y-6">
-                    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-                        <h2 className="mb-4 text-xl font-semibold text-gray-800">Personal Info</h2>
+                    {/* Template Selector Section */}
+                    <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition-colors">
+                        <h2 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Design Template</h2>
+                        <div className="flex overflow-x-auto gap-3 pb-2 pt-1 scrollbar-hide">
+                            {TEMPLATE_IDS.map(tid => (
+                                <button
+                                    key={tid}
+                                    onClick={() => setResumeData({ ...resumeData, templateId: tid })}
+                                    className={`px-4 py-2 rounded-md border text-sm font-bold capitalize whitespace-nowrap transition-all ${(resumeData.templateId || 'minimal') === tid
+                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md ring-2 ring-indigo-600 ring-offset-2'
+                                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                                        }`}
+                                >
+                                    {tid}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition-colors">
+                        <h2 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white">Personal Info</h2>
                         <div className="grid grid-cols-2 gap-4">
                             <input
-                                className="rounded-md border p-2 col-span-2 shadow-sm"
+                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 col-span-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 placeholder="Full Name"
                                 value={resumeData.personalInfo.fullName}
                                 onChange={(e) => setResumeData({ ...resumeData, personalInfo: { ...resumeData.personalInfo, fullName: e.target.value } })}
                             />
                             <input
-                                className="rounded-md border p-2 shadow-sm"
+                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 placeholder="Email"
                                 value={resumeData.personalInfo.email}
                                 onChange={(e) => setResumeData({ ...resumeData, personalInfo: { ...resumeData.personalInfo, email: e.target.value } })}
                             />
                             <input
-                                className="rounded-md border p-2 shadow-sm"
+                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 placeholder="Phone"
                                 value={resumeData.personalInfo.phone}
                                 onChange={(e) => setResumeData({ ...resumeData, personalInfo: { ...resumeData.personalInfo, phone: e.target.value } })}
                             />
                             <textarea
-                                className="rounded-md border p-2 col-span-2 h-24 shadow-sm"
+                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 col-span-2 h-24 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 placeholder="Professional Summary"
                                 value={resumeData.personalInfo.summary}
                                 onChange={(e) => setResumeData({ ...resumeData, personalInfo: { ...resumeData.personalInfo, summary: e.target.value } })}
                             />
-                            {/* Note: In a full app, we would add the AI generation button right next to the summary here */}
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault()
-                                    const hasContext = resumeData.personalInfo.summary.length > 3 ||
-                                        resumeData.experience.length > 0 ||
-                                        resumeData.skills.length > 0 ||
-                                        resumeData.education.length > 0;
-
-                                    if (hasContext) {
-                                        const promptContext = `
-Draft/Keywords: ${resumeData.personalInfo.summary || 'None'}
-Experience: ${resumeData.experience.map((ex: any) => `${ex.title} at ${ex.company}: ${ex.description}`).join(' | ')}
-Skills: ${resumeData.skills.join(', ')}
-Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.school}`).join(' | ')}
-`;
-                                        complete(promptContext)
-                                    } else {
-                                        alert('Please enter some details (experience, skills, or summary keywords) first.')
-                                    }
-                                }}
-                                disabled={isLoading}
-                                className="col-span-2 rounded bg-indigo-50 dark:bg-indigo-900/40 p-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors disabled:opacity-50 border border-indigo-100 dark:border-indigo-800"
-                            >
-                                {isLoading ? '✨ Generating...' : '✨ Enhance Summary with AI'}
-                            </button>
                         </div>
                     </div>
 
-                    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                    <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition-colors">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800">Experience</h2>
+                            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Experience</h2>
                             <button onClick={handleAddExperience} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Entry</button>
                         </div>
                         {resumeData.experience.length === 0 ? (
-                            <p className="text-sm text-gray-500 italic">Work experience entries will appear here.</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 italic">Work experience entries will appear here.</p>
                         ) : (
                             <div className="space-y-6">
                                 {resumeData.experience.map((exp: any, index: number) => (
-                                    <div key={index} className="relative p-4 border border-gray-100 bg-gray-50 rounded-md">
+                                    <div key={index} className="relative p-4 border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50 rounded-md">
                                         <button
                                             onClick={() => handleRemoveExperience(index)}
                                             className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-sm font-medium"
@@ -376,25 +375,25 @@ Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.schoo
                                         </button>
                                         <div className="grid grid-cols-2 gap-3 mt-2">
                                             <input
-                                                className="rounded-md border p-2 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Job Title"
                                                 value={exp.title}
                                                 onChange={(e) => handleUpdateExperience(index, 'title', e.target.value)}
                                             />
                                             <input
-                                                className="rounded-md border p-2 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Company Name"
                                                 value={exp.company}
                                                 onChange={(e) => handleUpdateExperience(index, 'company', e.target.value)}
                                             />
                                             <input
-                                                className="rounded-md border p-2 col-span-2 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 col-span-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Dates (e.g. Jan 2020 - Present)"
                                                 value={exp.date}
                                                 onChange={(e) => handleUpdateExperience(index, 'date', e.target.value)}
                                             />
                                             <textarea
-                                                className="rounded-md border p-2 col-span-2 h-20 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 col-span-2 h-20 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Description / Responsibilities"
                                                 value={exp.description}
                                                 onChange={(e) => handleUpdateExperience(index, 'description', e.target.value)}
@@ -406,17 +405,17 @@ Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.schoo
                         )}
                     </div>
 
-                    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                    <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition-colors">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800">Education</h2>
+                            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Education</h2>
                             <button onClick={handleAddEducation} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Entry</button>
                         </div>
                         {resumeData.education.length === 0 ? (
-                            <p className="text-sm text-gray-500 italic">Education entries will appear here.</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 italic">Education entries will appear here.</p>
                         ) : (
                             <div className="space-y-6">
                                 {resumeData.education.map((edu: any, index: number) => (
-                                    <div key={index} className="relative p-4 border border-gray-100 bg-gray-50 rounded-md">
+                                    <div key={index} className="relative p-4 border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50 rounded-md">
                                         <button
                                             onClick={() => handleRemoveEducation(index)}
                                             className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-sm font-medium"
@@ -425,25 +424,25 @@ Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.schoo
                                         </button>
                                         <div className="grid grid-cols-2 gap-3 mt-2">
                                             <input
-                                                className="rounded-md border p-2 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Degree / Certificate"
                                                 value={edu.degree}
                                                 onChange={(e) => handleUpdateEducation(index, 'degree', e.target.value)}
                                             />
                                             <input
-                                                className="rounded-md border p-2 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="School / University"
                                                 value={edu.school}
                                                 onChange={(e) => handleUpdateEducation(index, 'school', e.target.value)}
                                             />
                                             <input
-                                                className="rounded-md border p-2 col-span-2 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 col-span-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Dates (e.g. 2018 - 2022)"
                                                 value={edu.date}
                                                 onChange={(e) => handleUpdateEducation(index, 'date', e.target.value)}
                                             />
                                             <input
-                                                className="rounded-md border p-2 col-span-2 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 col-span-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Additional Info (GPA, Honors, etc.)"
                                                 value={edu.info}
                                                 onChange={(e) => handleUpdateEducation(index, 'info', e.target.value)}
@@ -455,19 +454,19 @@ Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.schoo
                         )}
                     </div>
 
-                    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                    <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition-colors">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800">Skills</h2>
+                            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Skills</h2>
                             <button onClick={handleAddSkill} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Skill</button>
                         </div>
                         {resumeData.skills.length === 0 ? (
-                            <p className="text-sm text-gray-500 italic">Skills will appear here.</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 italic">Skills will appear here.</p>
                         ) : (
                             <div className="flex flex-wrap gap-3">
                                 {resumeData.skills.map((skill: string, index: number) => (
-                                    <div key={index} className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1">
+                                    <div key={index} className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/40 border border-indigo-100 dark:border-indigo-800 rounded-full px-3 py-1">
                                         <input
-                                            className="bg-transparent focus:outline-none text-sm text-indigo-900 w-24"
+                                            className="bg-transparent focus:outline-none text-sm text-indigo-900 dark:text-indigo-200 w-24"
                                             placeholder="Skill..."
                                             value={skill}
                                             onChange={(e) => handleUpdateSkill(index, e.target.value)}
@@ -484,17 +483,17 @@ Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.schoo
                             </div>
                         )}
                     </div>
-                    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                    <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition-colors">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800">Projects</h2>
+                            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Projects</h2>
                             <button onClick={handleAddProject} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Entry</button>
                         </div>
                         {(!resumeData.projects || resumeData.projects.length === 0) ? (
-                            <p className="text-sm text-gray-500 italic">Project entries will appear here.</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 italic">Project entries will appear here.</p>
                         ) : (
                             <div className="space-y-6">
                                 {resumeData.projects.map((proj: any, index: number) => (
-                                    <div key={index} className="relative p-4 border border-gray-100 bg-gray-50 rounded-md">
+                                    <div key={index} className="relative p-4 border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50 rounded-md">
                                         <button
                                             onClick={() => handleRemoveProject(index)}
                                             className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-sm font-medium"
@@ -503,19 +502,19 @@ Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.schoo
                                         </button>
                                         <div className="grid grid-cols-2 gap-3 mt-2">
                                             <input
-                                                className="rounded-md border p-2 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Project Name"
                                                 value={proj.name}
                                                 onChange={(e) => handleUpdateProject(index, 'name', e.target.value)}
                                             />
                                             <input
-                                                className="rounded-md border p-2 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Link (optional)"
                                                 value={proj.link}
                                                 onChange={(e) => handleUpdateProject(index, 'link', e.target.value)}
                                             />
                                             <textarea
-                                                className="rounded-md border p-2 col-span-2 h-20 shadow-sm"
+                                                className="rounded-md border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white p-2 col-span-2 h-20 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                 placeholder="Description / Technologies used"
                                                 value={proj.description}
                                                 onChange={(e) => handleUpdateProject(index, 'description', e.target.value)}
@@ -527,13 +526,13 @@ Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.schoo
                         )}
                     </div>
 
-                    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                    <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition-colors">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800">Languages</h2>
+                            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Languages</h2>
                             <button onClick={handleAddLanguage} className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">+ Add Language</button>
                         </div>
                         {(!resumeData.languages || resumeData.languages.length === 0) ? (
-                            <p className="text-sm text-gray-500 italic">Languages will appear here.</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 italic">Languages will appear here.</p>
                         ) : (
                             <div className="space-y-4">
                                 {resumeData.languages.map((lang: any, index: number) => (
@@ -561,13 +560,65 @@ Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.schoo
                             </div>
                         )}
                     </div>
+
+                    {/* AI Enhancement Section */}
+                    <div className="rounded-lg border border-indigo-200 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-900/20 p-6 shadow-sm relative overflow-hidden transition-colors">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-500"></div>
+                        <h2 className="mb-2 text-xl font-bold text-indigo-900 dark:text-indigo-300">✨ Polish Review & AI Enhance</h2>
+                        <p className="text-sm text-indigo-700/80 dark:text-indigo-300/80 mb-5 leading-relaxed max-w-lg">
+                            Ready to finalize? Our AI will scan your entire resume, rewriting your descriptions and summary with powerful action verbs and professional phrasing—without removing your actual experience.
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <button
+                                onClick={async () => {
+                                    setIsEnhancing(true)
+                                    try {
+                                        const res = await fetch('/api/enhance-resume', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ resumeData })
+                                        })
+                                        const data = await res.json()
+                                        if (res.ok && data.enhancedData) {
+                                            setHistory(prev => [...prev, resumeData])
+                                            setResumeData({ ...data.enhancedData, templateId: resumeData.templateId })
+                                        } else {
+                                            alert(data.error || 'Enhancement failed.')
+                                        }
+                                    } catch (err) {
+                                        alert('Error connecting to AI service.')
+                                    } finally {
+                                        setIsEnhancing(false)
+                                    }
+                                }}
+                                disabled={isEnhancing}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-md shadow-md flex items-center gap-2 transition-all disabled:opacity-50 text-sm"
+                            >
+                                {isEnhancing ? '✨ Processing Resume...' : '✨ Auto-Polish Entire Resume'}
+                            </button>
+
+                            {history.length > 0 && (
+                                <button
+                                    onClick={() => {
+                                        const previousState = history[history.length - 1]
+                                        setHistory(prev => prev.slice(0, -1))
+                                        setResumeData(previousState)
+                                    }}
+                                    className="text-sm font-bold text-gray-500 hover:text-indigo-600 hover:underline underline-offset-2 px-2 transition-colors"
+                                >
+                                    ↺ Undo AI Changes
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </section>
             </div>
 
             {/* Preview Section (Right Side) */}
             <div
                 ref={previewContainerRef}
-                className="w-full lg:w-1/2 bg-gray-200 p-4 lg:p-0 flex flex-col items-center overflow-x-hidden overflow-y-auto print:overflow-visible print:bg-white print:p-0"
+                className="w-full lg:w-1/2 bg-gray-200 dark:bg-slate-900/50 p-4 lg:p-0 flex flex-col items-center overflow-x-hidden overflow-y-auto print:overflow-visible print:bg-white print:p-0 transition-colors"
             >
                 <div
                     className="flex justify-center transition-transform duration-300 origin-top pt-8 pb-10 print-safe-wrapper"
@@ -577,124 +628,12 @@ Education: ${resumeData.education.map((ed: any) => `${ed.degree} from ${ed.schoo
                         marginBottom: `-${(1 - scale) * 1056}px` // Reduce bottom margin to counteract the layout space left by scale
                     }}
                 >
-                    {/* A4 Resume Paper Effect */}
-                    <div ref={contentRef} id="resume-preview-content" className="w-[8.5in] min-h-[11in] bg-white p-10 shadow-xl shrink-0 tracking-normal text-gray-900 print:shadow-none print:m-0 print:p-8">
-                        {/* Preview Content */}
-                        <header className="border-b-2 border-gray-300 pb-4 mb-6">
-                            <h1 className="text-4xl font-serif font-bold text-gray-900 uppercase tracking-tight">
-                                {resumeData.personalInfo.fullName || 'Your Name'}
-                            </h1>
-                            <div className="text-sm mt-2 text-gray-600 flex gap-4">
-                                <span>{resumeData.personalInfo.email || 'email@example.com'}</span>
-                                <span>•</span>
-                                <span>{resumeData.personalInfo.phone || '(555) 123-4567'}</span>
-                            </div>
-                        </header>
-
-                        <section className="mb-6">
-                            <h2 className="text-lg font-bold text-gray-800 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Professional Summary</h2>
-                            <p className="text-sm text-gray-700 leading-relaxed font-serif">
-                                {resumeData.personalInfo.summary || 'Summary text will appear here. Build an impressive and professional summary to catch the eye of recruiters.'}
-                            </p>
-                        </section>
-
-                        <section className="mb-6">
-                            <h2 className="text-lg font-bold text-gray-800 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Experience</h2>
-                            {resumeData.experience.length === 0 ? (
-                                <div className="text-sm text-gray-500 italic">Experience items will map here...</div>
-                            ) : (
-                                <div className="space-y-4 pt-2">
-                                    {resumeData.experience.map((exp: any, index: number) => (
-                                        <div key={index}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <h3 className="font-bold text-gray-900">{exp.title || 'Job Title'}</h3>
-                                                <span className="text-sm font-medium text-gray-600 font-serif">{exp.date || 'Dates'}</span>
-                                            </div>
-                                            <div className="text-indigo-700 font-semibold text-sm mb-2">{exp.company || 'Company Name'}</div>
-                                            <p className="text-sm text-gray-700 leading-relaxed font-serif whitespace-pre-wrap">
-                                                {exp.description || 'Description of responsibilities and achievements...'}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </section>
-
-                        <section className="mb-6">
-                            <h2 className="text-lg font-bold text-gray-800 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Education</h2>
-                            {resumeData.education.length === 0 ? (
-                                <div className="text-sm text-gray-500 italic">Education items will map here...</div>
-                            ) : (
-                                <div className="space-y-4 pt-2">
-                                    {resumeData.education.map((edu: any, index: number) => (
-                                        <div key={index}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <h3 className="font-bold text-gray-900">{edu.degree || 'Degree/Certificate'}</h3>
-                                                <span className="text-sm font-medium text-gray-600 font-serif">{edu.date || 'Dates'}</span>
-                                            </div>
-                                            <div className="text-indigo-700 font-semibold text-sm mb-1">{edu.school || 'School/University Name'}</div>
-                                            <div className="text-sm text-gray-600 font-serif">{edu.info}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </section>
-
-                        {resumeData.projects && resumeData.projects.length > 0 && (
-                            <section className="mb-6">
-                                <h2 className="text-lg font-bold text-gray-800 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Projects</h2>
-                                <div className="space-y-4 pt-2">
-                                    {resumeData.projects.map((proj: any, index: number) => (
-                                        <div key={index}>
-                                            <div className="flex justify-between items-baseline mb-1">
-                                                <h3 className="font-bold text-gray-900">{proj.name || 'Project Name'}</h3>
-                                                {proj.link && (
-                                                    <a href={proj.link.startsWith('http') ? proj.link : `https://${proj.link}`} target="_blank" rel="noreferrer" className="text-sm font-medium text-indigo-600 hover:underline">
-                                                        {proj.link}
-                                                    </a>
-                                                )}
-                                            </div>
-                                            <p className="text-sm text-gray-700 leading-relaxed font-serif whitespace-pre-wrap">
-                                                {proj.description || 'Project description...'}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-
-                        {(resumeData.skills?.length > 0 || resumeData.languages?.length > 0) && (
-                            <div className="grid grid-cols-2 gap-6">
-                                {resumeData.skills && resumeData.skills.length > 0 && (
-                                    <section className="mb-6">
-                                        <h2 className="text-lg font-bold text-gray-800 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Skills</h2>
-                                        <div className="flex flex-wrap gap-2 pt-2">
-                                            {resumeData.skills.map((skill: string, index: number) => (
-                                                skill && (
-                                                    <span key={index} className="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded-sm border border-gray-200 font-medium">
-                                                        {skill}
-                                                    </span>
-                                                )
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
-                                {resumeData.languages && resumeData.languages.length > 0 && (
-                                    <section className="mb-6">
-                                        <h2 className="text-lg font-bold text-gray-800 uppercase tracking-widest mb-2 border-b border-gray-200 pb-1">Languages</h2>
-                                        <div className="space-y-2 pt-2">
-                                            {resumeData.languages.map((lang: any, index: number) => (
-                                                <div key={index} className="flex justify-between items-baseline">
-                                                    <span className="font-bold text-gray-900 text-sm">{lang.language || 'Language'}</span>
-                                                    <span className="text-sm text-gray-600 font-serif">{lang.fluency || 'Fluency'}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-                            </div>
-                        )}
+                    {/* A4 Resume Paper Effect wrapped securely for print */}
+                    <div ref={contentRef} id="resume-preview-content" className="shrink-0 print:shadow-none print:m-0">
+                        {(() => {
+                            const SelectedTemplate = Templates[(resumeData.templateId as TemplateId) || 'minimal'] || Templates.minimal;
+                            return <SelectedTemplate data={resumeData} />;
+                        })()}
                     </div>
                 </div>
             </div>
