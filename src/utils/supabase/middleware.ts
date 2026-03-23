@@ -33,8 +33,8 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // Protect the dashboard route
-    if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
+    // Protect the dashboard and builder routes
+    if ((request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/builder')) && !user) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)

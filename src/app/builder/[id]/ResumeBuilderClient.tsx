@@ -25,10 +25,11 @@ export default function ResumeBuilderClient({
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null)
     const contentRef = useRef<HTMLDivElement>(null)
     const previewContainerRef = useRef<HTMLDivElement>(null)
-    const [timeLeft, setTimeLeft] = useState<number | null>(300)
+    const previewContainerRef = useRef<HTMLDivElement>(null)
     const [scale, setScale] = useState(1)
     const [history, setHistory] = useState<any[]>([])
     const [isEnhancing, setIsEnhancing] = useState(false)
+    const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('edit')
 
     const [resumeData, setResumeData] = useState(
         initialResume?.content || {
@@ -51,33 +52,6 @@ export default function ResumeBuilderClient({
 
     const [title, setTitle] = useState(initialResume?.title || 'Untitled Resume')
 
-    // Countdown logic
-    useEffect(() => {
-        const checkUserAndStartTimer = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            // If the user is logged in, their resumes don't expire
-            if (session?.user) {
-                setTimeLeft(null)
-                return
-            }
-
-            if (resumeId !== 'new') {
-                const initialCreatedAt = initialResume?.created_at ? new Date(initialResume.created_at).getTime() : Date.now()
-                const interval = setInterval(() => {
-                    const now = Date.now()
-                    const diff = Math.floor((initialCreatedAt + 5 * 60 * 1000 - now) / 1000)
-                    if (diff <= 0) {
-                        clearInterval(interval)
-                        router.push('/?expired=true')
-                    } else {
-                        setTimeLeft(diff)
-                    }
-                }, 1000)
-                return () => clearInterval(interval)
-            }
-        }
-        checkUserAndStartTimer()
-    }, [resumeId, initialResume, router, supabase])
 
     // Auto-save logic
     useEffect(() => {
@@ -270,9 +244,25 @@ export default function ResumeBuilderClient({
     }, [completion])
 
     return (
-        <div className="flex flex-col lg:flex-row w-full h-full lg:overflow-hidden text-black dark:text-gray-100 bg-white dark:bg-slate-900 lg:bg-transparent dark:lg:bg-transparent transition-colors">
+        <div className="flex flex-col lg:flex-row w-full h-full lg:overflow-hidden text-black dark:text-gray-100 bg-gray-50 dark:bg-slate-900 lg:bg-transparent dark:lg:bg-transparent transition-colors">
+            {/* Mobile Tab Toggle */}
+            <div className="lg:hidden flex border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-20">
+                <button 
+                   onClick={() => setMobileTab('edit')} 
+                   className={`flex-1 py-3 text-sm font-semibold text-center border-b-2 transition-colors ${mobileTab === 'edit' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400' : 'border-transparent text-gray-500 dark:text-gray-400'}`}
+                >
+                   Edit Details
+                </button>
+                <button 
+                   onClick={() => setMobileTab('preview')} 
+                   className={`flex-1 py-3 text-sm font-semibold text-center border-b-2 transition-colors ${mobileTab === 'preview' ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400' : 'border-transparent text-gray-500 dark:text-gray-400'}`}
+                >
+                   Preview Design
+                </button>
+            </div>
+
             {/* Form Section (Left Side) */}
-            <div className="print:hidden w-full lg:w-1/2 flex-col lg:overflow-y-auto border-r border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 p-4 sm:p-6 pb-20 lg:pb-6 transition-colors">
+            <div className={`print:hidden w-full lg:w-1/2 flex-col lg:overflow-y-auto border-r border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 p-4 sm:p-6 pb-20 lg:pb-6 transition-colors ${mobileTab === 'preview' ? 'hidden lg:flex' : 'flex'}`}>
                 <header className="mb-6 border-b border-gray-200 dark:border-slate-800 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 bg-gray-50 dark:bg-slate-900/95 z-10 p-2 shadow-sm rounded-md transition-colors">
                     <div className="flex flex-col gap-1 w-full sm:w-1/2">
                         <Logo className="text-xl sm:text-2xl" />
@@ -286,11 +276,6 @@ export default function ResumeBuilderClient({
                     </div>
                     <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
                         <div className="flex items-center gap-3">
-                            {(resumeId !== 'new' && timeLeft !== null) && (
-                                <div className="text-xs font-semibold text-red-600 bg-red-50 px-3 py-1.5 rounded-full border border-red-200 shadow-sm transition-all hover:bg-red-100 whitespace-nowrap">
-                                    Ends in: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
-                                </div>
-                            )}
                             <button
                                 onClick={handleDownloadPDF}
                                 className="bg-indigo-600 text-white px-3 py-1.5 rounded-full shadow-md hover:bg-indigo-700 transition flex items-center gap-2 font-medium text-xs whitespace-nowrap"
@@ -618,7 +603,7 @@ export default function ResumeBuilderClient({
             {/* Preview Section (Right Side) */}
             <div
                 ref={previewContainerRef}
-                className="w-full lg:w-1/2 bg-gray-200 dark:bg-slate-900/50 p-4 lg:p-0 flex flex-col items-center overflow-x-hidden overflow-y-auto print:overflow-visible print:bg-white print:p-0 transition-colors"
+                className={`w-full lg:w-1/2 bg-gray-200 dark:bg-slate-900/50 p-4 lg:p-0 flex-col items-center overflow-x-hidden overflow-y-auto print:overflow-visible print:bg-white print:p-0 transition-colors ${mobileTab === 'edit' ? 'hidden lg:flex' : 'flex'}`}
             >
                 <div
                     className="flex justify-center transition-transform duration-300 origin-top pt-8 pb-10 print-safe-wrapper"

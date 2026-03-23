@@ -49,7 +49,7 @@ export default async function Home() {
         </div>
 
         <p className="mb-10 max-w-2xl text-lg text-gray-600 dark:text-gray-400 sm:text-xl">
-          Use the power of AI to craft professional summaries that get you hired. Stand out from the crowd with our intelligent builder. Use as a guest, or log in to permanently save your resumes.
+          Use the power of AI to craft professional summaries that get you hired. Stand out from the crowd with our intelligent builder. Log in to permanently save your resumes.
         </p>
 
         <div className="flex gap-4 mb-16">
@@ -62,7 +62,7 @@ export default async function Home() {
         </div>
 
         {/* Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full text-left">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full text-left max-w-4xl mx-auto">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 transition-colors">
             <div className="bg-indigo-100 dark:bg-indigo-900/50 w-12 h-12 rounded-lg flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4">
               <Zap className="w-6 h-6" />
@@ -76,13 +76,6 @@ export default async function Home() {
             </div>
             <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Permanent Storage</h3>
             <p className="text-gray-600 dark:text-gray-400">Create a free account to securely save and access all your generated resumes anytime.</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 transition-colors">
-            <div className="bg-red-100 dark:bg-red-900/50 w-12 h-12 rounded-lg flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
-              <Clock className="w-6 h-6" />
-            </div>
-            <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Optional Guest Mode</h3>
-            <p className="text-gray-600 dark:text-gray-400">Don't want to sign up? Generate anonymously. Guest resumes self-destruct after 5 minutes.</p>
           </div>
         </div>
 
