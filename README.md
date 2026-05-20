@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 ResumeForge - AI-Powered Resume Builder
 
-## Getting Started
+Build Your Perfect Resume Fast! ResumeForge uses the power of AI to craft professional summaries and bullet points that get you hired. Stand out from the crowd with our intelligent builder.
 
-First, run the development server:
+![Hero Screenshot](./public/screenshots/hero.png)
 
+*(**Note to developer**: Please capture a screenshot of your homepage and save it to `public/screenshots/hero.png`)*
+
+## ✨ Features
+
+- **🤖 AI-Powered Enhancement**: Instantly generate professional summaries and polish your entire resume with advanced AI (Powered by OpenRouter & GPT-OSS).
+- **🎨 10+ Premium Templates**: Switch between beautiful, ATS-friendly designs (Minimal, Modern, Executive, Creative, Tech, Classic, Vibrant, Elegant, Startup, Academic) in real-time.
+- **🔐 Secure Authentication**: Fast login via Email/Password or **Google OAuth** powered by Supabase Auth.
+- **💾 Permanent Storage**: Save your progress across devices automatically.
+- **📱 Fully Responsive**: A seamless mobile experience with a dedicated toggle between the "Edit Details" form and the "Preview Design" canvas.
+- **🌙 Dark Mode Support**: System-aware dark mode toggle across the entire application.
+- **🛡️ Admin Dashboard**: Restricted dashboard for viewing platform analytics and secure user management.
+- **📄 Instant PDF Export**: Instantly generate and download your resume as a high-quality PDF.
+
+## 📸 Screenshots
+
+| Builder Interface | Mobile View | Admin Dashboard |
+|:---:|:---:|:---:|
+| ![Builder](./public/screenshots/builder.png) | ![Mobile](./public/screenshots/mobile.png) | ![Admin](./public/screenshots/admin.png) |
+
+*(**Note to developer**: Add screenshots named `builder.png`, `mobile.png`, and `admin.png` to the `public/screenshots/` folder to display them properly)*
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend**: [Next.js](https://nextjs.org/) (App Router, Turbopack)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Backend & Auth**: [Supabase](https://supabase.com/) (PostgreSQL + Row Level Security + Google OAuth)
+- **AI Integration**: [Vercel AI SDK](https://sdk.vercel.ai/) & OpenRouter (`openai/gpt-oss-20b:free`)
+- **Icons**: [Lucide React](https://lucide.dev/)
+
+---
+
+## 🚀 Getting Started
+
+Follow these steps to set up the project on your local machine and make it your own!
+
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/CyberScythe1/AI-Resume-builder.git
+cd ai_resume_maker
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Set up Supabase
+1. Create a new project on [Supabase](https://supabase.com/).
+2. Open the **SQL Editor** in your Supabase dashboard and run the entire script found in `supabase_schema_final.sql`. 
+   > This script will automatically create the `resumes` table, `user_roles` table, enable Row Level Security, and configure the necessary Postgres RPC functions for your admin dashboard.
+3. In the **Authentication > Providers** settings, enable **Google** and provide your Google Cloud Console Client ID and Secret to allow users to sign in with Google.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Configure Environment Variables
+Create a `.env.local` file in the root of the project with your API keys:
+```env
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-## Learn More
+# OpenRouter Configuration (for AI features)
+OPENROUTER_API_KEY=your_openrouter_api_key
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 5. Run the Development Server
+```bash
+npm run dev
+```
+The application will be available at `http://localhost:3000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🛡️ Admin Panel Setup
 
-## Deploy on Vercel
+By default, the `/admin` route is restricted. To grant yourself Admin privileges:
+1. Log into your app once using your email or Google OAuth so your user is registered.
+2. Go to your Supabase **Table Editor**.
+3. Locate your User ID in the `auth.users` schema.
+4. Insert a new row into the `public.user_roles` table mapping your `user_id` to the role `'admin'`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Now, if you navigate to `/admin`, you will securely see total app metrics and have the ability to manage users.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📜 License
+This project is licensed under the MIT License. Feel free to fork, modify, and build upon it!
